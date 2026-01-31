@@ -8,18 +8,18 @@ namespace CurrencyConverter.Api.Security;
 
 public sealed class JwtTokenService : IJwtTokenService
 {
-	private readonly JwtOptions options;
-	private readonly TimeProvider timeProvider;
+	private readonly JwtOptions _options;
+	private readonly TimeProvider _timeProvider;
 
 	public JwtTokenService(IOptions<JwtOptions> options, TimeProvider timeProvider)
 	{
-		this.options = options.Value;
-		this.timeProvider = timeProvider;
+		this._options = options.Value;
+		this._timeProvider = timeProvider;
 	}
 
 	public string CreateToken(string clientId, IReadOnlyCollection<string> roles)
 	{
-		var now = timeProvider.GetUtcNow();
+		var now = this._timeProvider.GetUtcNow();
 
 		var claims = new List<Claim>
 		{
@@ -32,15 +32,15 @@ public sealed class JwtTokenService : IJwtTokenService
 			claims.Add(new Claim(ClaimTypes.Role, role));
 		}
 
-		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.SigningKey));
+		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this._options.SigningKey));
 		var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
 		var token = new JwtSecurityToken(
-			issuer: options.Issuer,
-			audience: options.Audience,
+			issuer: this._options.Issuer,
+			audience: this._options.Audience,
 			claims: claims,
 			notBefore: now.UtcDateTime,
-			expires: now.AddMinutes(options.TokenLifetimeMinutes)
+			expires: now.AddMinutes(this._options.TokenLifetimeMinutes)
 						.UtcDateTime,
 			signingCredentials: creds);
 

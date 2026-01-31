@@ -1,9 +1,10 @@
 ﻿using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 using CurrencyConverter.Api.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
-using System.Threading.RateLimiting;
 
 namespace CurrencyConverter.Api.DependencyInjection;
 
@@ -43,6 +44,10 @@ public static class ApiSecurityServiceCollectionExtensions
 
 		services.AddAuthorization(options =>
 		{
+			options.FallbackPolicy = new AuthorizationPolicyBuilder()
+				.RequireAuthenticatedUser()
+				.Build();
+
 			options.AddPolicy("RatesRead", policy => policy.RequireRole("rates.read", "admin"));
 			options.AddPolicy("Convert", policy => policy.RequireRole("convert", "admin"));
 			options.AddPolicy("HistoryRead", policy => policy.RequireRole("history.read", "admin"));

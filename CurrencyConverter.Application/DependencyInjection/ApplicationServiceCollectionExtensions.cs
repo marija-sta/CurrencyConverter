@@ -1,7 +1,7 @@
-﻿using CurrencyConverter.Application.Services;
+﻿﻿using CurrencyConverter.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CurrencyConverter.Api.DependencyInjection;
+namespace CurrencyConverter.Application.DependencyInjection;
 
 public static class ApplicationServiceCollectionExtensions
 {

@@ -1,5 +1,10 @@
 ﻿namespace CurrencyConverter.Domain.ValueObjects;
 
+/// <summary>
+/// Represents a validated ISO 4217 currency code.
+/// Certain currencies (TRY, PLN, THB, MXN) are marked as excluded for business rule validation.
+/// The exclusion enforcement is context-dependent and currently applied only in conversion operations.
+/// </summary>
 public readonly record struct CurrencyCode
 {
 	private static readonly HashSet<string> Excluded = new(StringComparer.OrdinalIgnoreCase)

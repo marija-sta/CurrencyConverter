@@ -2,6 +2,7 @@
 using CurrencyConverter.Application.Abstractions.Providers;
 using CurrencyConverter.Infrastructure.Caching;
 using CurrencyConverter.Infrastructure.Helpers;
+using CurrencyConverter.Infrastructure.Http;
 using CurrencyConverter.Infrastructure.Options;
 using CurrencyConverter.Infrastructure.Providers;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,7 @@ public static class InfrastructureServiceCollectionExtensions
 
 		services.AddMemoryCache();
 		services.AddSingleton<IExchangeRateCache, MemoryExchangeRateCache>();
+		services.AddTransient<OutboundHttpCorrelationLoggingHandler>();
 
 		var resilienceOptions =
 			configuration.GetSection(FrankfurterResilienceOptions.SectionName)
@@ -34,6 +36,7 @@ public static class InfrastructureServiceCollectionExtensions
 									.Value;
 					client.BaseAddress = new Uri(options.BaseUrl);
 				})
+				.AddHttpMessageHandler<OutboundHttpCorrelationLoggingHandler>()
 				.AddResilienceHandler("Frankfurter", builder =>
 				{
 					builder.AddTimeout(TimeSpan.FromSeconds(resilienceOptions.TimeoutSeconds));

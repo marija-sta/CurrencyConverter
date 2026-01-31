@@ -2,22 +2,36 @@ using Asp.Versioning;
 using CurrencyConverter.Api.DependencyInjection;
 using CurrencyConverter.Api.Endpoints;
 using CurrencyConverter.Api.Middleware;
+using CurrencyConverter.Application.DependencyInjection;
 using CurrencyConverter.Infrastructure.DependencyInjection;
 using Scalar.AspNetCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Host.UseApiSerilog();
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddCors(options =>
+{
+	options.AddDefaultPolicy(policy =>
+	{
+		policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
+			  .AllowAnyHeader()
+			  .AllowAnyMethod()
+			  .AllowCredentials()
+			  .WithExposedHeaders("X-Correlation-ID");
+	});
+});
 
 builder.Services.AddSingleton<ExceptionHandlingMiddleware>();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddApiSecurity(builder.Configuration);
+builder.Services.AddApiObservability(builder.Configuration);
 
 builder.Services
        .AddApiVersioning(options =>
@@ -46,9 +60,21 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+app.UseMiddleware<CorrelationIdMiddleware>();
+
 app.UseHttpsRedirection();
 
+app.UseCors();
+
+app.UseRateLimiter();
+
+app.UseAuthentication();
+
+app.UseMiddleware<RequestLogContextMiddleware>();
+
 app.UseAuthorization();
+
+app.UseSerilogRequestLogging();
 
 app.MapControllers()
    .RequireRateLimiting("ApiPolicy")
