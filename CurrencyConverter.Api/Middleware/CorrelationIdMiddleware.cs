@@ -1,4 +1,4 @@
-﻿﻿using CurrencyConverter.Application.Abstractions.Observability;
+﻿using CurrencyConverter.Application.Abstractions.Observability;
 using Serilog.Context;
 
 namespace CurrencyConverter.Api.Middleware;

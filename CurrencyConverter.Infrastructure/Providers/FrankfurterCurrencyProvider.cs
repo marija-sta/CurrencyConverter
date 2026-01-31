@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
 using System.Net.Http.Json;
-using System.Text.Json.Serialization;
 using CurrencyConverter.Application.Abstractions.Providers;
 using CurrencyConverter.Domain.ValueObjects;
+using CurrencyConverter.Infrastructure.Providers.Responses;
 
 namespace CurrencyConverter.Infrastructure.Providers;
 
@@ -77,37 +77,5 @@ public sealed class FrankfurterCurrencyProvider : ICurrencyProvider
                 DateOnly.ParseExact(response.EndDate, "yyyy-MM-dd", CultureInfo.InvariantCulture)),
             points);
     }
-
-    private sealed class FrankfurterLatestResponse
-    {
-        [JsonPropertyName("amount")]
-        public decimal Amount { get; init; }
-
-        [JsonPropertyName("base")]
-        public string Base { get; init; } = "";
-
-        [JsonPropertyName("date")]
-        public string Date { get; init; } = "";
-
-        [JsonPropertyName("rates")]
-        public Dictionary<string, decimal> Rates { get; init; } = new();
-    }
-
-    private sealed class FrankfurterHistoricalResponse
-    {
-        [JsonPropertyName("amount")]
-        public decimal Amount { get; init; }
-
-        [JsonPropertyName("base")]
-        public string Base { get; init; } = "";
-
-        [JsonPropertyName("start_date")]
-        public string StartDate { get; init; } = "";
-
-        [JsonPropertyName("end_date")]
-        public string EndDate { get; init; } = "";
-
-        [JsonPropertyName("rates")]
-        public Dictionary<string, Dictionary<string, decimal>> Rates { get; init; } = new();
-    }
 }
+

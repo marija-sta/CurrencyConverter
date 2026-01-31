@@ -3,7 +3,7 @@ using CurrencyConverter.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CurrencyConverter.Api.Controllers.V1;
+namespace CurrencyConverter.Api.Controllers;
 
 [ApiController]
 [ApiVersion(1)]
@@ -14,7 +14,7 @@ public sealed class ConversionController : ControllerBase
 
 	public ConversionController(IConversionService service)
 	{
-		_service = service;
+		this._service = service;
 	}
 
 	[Authorize(Policy = "Convert")]
@@ -25,7 +25,7 @@ public sealed class ConversionController : ControllerBase
 		[FromQuery] string to,
 		CancellationToken cancellationToken)
 	{
-		var result = await _service.ConvertAsync(amount, from, to, cancellationToken);
+		var result = await this._service.ConvertAsync(amount, from, to, cancellationToken);
 		return Ok(result);
 	}
 }
