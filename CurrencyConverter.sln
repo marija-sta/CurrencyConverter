@@ -13,10 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurrencyConverter.Infrastru
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
-		tests\TEST_STRUCTURE.md = tests\TEST_STRUCTURE.md
-		tests\run-tests-with-coverage.ps1 = tests\run-tests-with-coverage.ps1
-		tests\QUICK_REFERENCE.md = tests\QUICK_REFERENCE.md
-		tests\INTEGRATION_TEST_APPROACH.md = tests\INTEGRATION_TEST_APPROACH.md
 		tests\run-tests-with-detailed-coverage.ps1 = tests\run-tests-with-detailed-coverage.ps1
 	EndProjectSection
 EndProject
