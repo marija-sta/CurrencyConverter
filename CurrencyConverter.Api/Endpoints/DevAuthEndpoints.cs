@@ -1,7 +1,9 @@
-﻿using CurrencyConverter.Api.Security;
+﻿using System.Diagnostics.CodeAnalysis;
+using CurrencyConverter.Api.Security;
 
 namespace CurrencyConverter.Api.Endpoints;
 
+[ExcludeFromCodeCoverage]
 public static class DevAuthEndpoints
 {
 	public static IEndpointRouteBuilder MapDevAuthEndpoints(this IEndpointRouteBuilder endpoints)

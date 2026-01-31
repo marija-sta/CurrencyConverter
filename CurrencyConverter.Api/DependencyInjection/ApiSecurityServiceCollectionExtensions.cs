@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
 using CurrencyConverter.Api.Security;
@@ -8,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace CurrencyConverter.Api.DependencyInjection;
 
+[ExcludeFromCodeCoverage]
 public static class ApiSecurityServiceCollectionExtensions
 {
 	public static IServiceCollection AddApiSecurity(this IServiceCollection services, IConfiguration configuration)

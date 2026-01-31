@@ -1,4 +1,4 @@
-﻿using CurrencyConverter.Application.Abstractions.Observability;
+﻿﻿using CurrencyConverter.Application.Abstractions.Observability;
 using Serilog.Context;
 
 namespace CurrencyConverter.Api.Middleware;
@@ -19,12 +19,7 @@ public sealed class CorrelationIdMiddleware : IMiddleware
 		var correlationId = GetOrCreateCorrelationId(context);
 
 		this._correlationIdAccessor.Set(correlationId);
-
-		context.Response.OnStarting(() =>
-		{
-			context.Response.Headers[HeaderName] = correlationId;
-			return Task.CompletedTask;
-		});
+		context.Response.Headers[HeaderName] = correlationId;
 
 		using (LogContext.PushProperty("CorrelationId", correlationId))
 		{

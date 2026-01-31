@@ -1,7 +1,9 @@
-﻿using Serilog;
+﻿using System.Diagnostics.CodeAnalysis;
+using Serilog;
 
 namespace CurrencyConverter.Api.DependencyInjection;
 
+[ExcludeFromCodeCoverage]
 public static class HostBuilderExtensions
 {
 	public static IHostBuilder UseApiSerilog(this IHostBuilder host)

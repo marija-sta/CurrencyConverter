@@ -1,4 +1,5 @@
-﻿using CurrencyConverter.Application.Abstractions.Caching;
+﻿using System.Diagnostics.CodeAnalysis;
+using CurrencyConverter.Application.Abstractions.Caching;
 using CurrencyConverter.Application.Abstractions.Providers;
 using CurrencyConverter.Infrastructure.Caching;
 using CurrencyConverter.Infrastructure.Helpers;
@@ -13,6 +14,7 @@ using Polly;
 
 namespace CurrencyConverter.Infrastructure.DependencyInjection;
 
+[ExcludeFromCodeCoverage]
 public static class InfrastructureServiceCollectionExtensions
 {
 	public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)

@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="CurrencyConverter.IntegrationTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CurrencyConverter.Application\CurrencyConverter.Application.csproj" />
   </ItemGroup>
 
