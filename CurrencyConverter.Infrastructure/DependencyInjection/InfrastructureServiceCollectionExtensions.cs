@@ -1,0 +1,35 @@
+﻿using CurrencyConverter.Application.Abstractions.Caching;
+using CurrencyConverter.Application.Abstractions.Providers;
+using CurrencyConverter.Infrastructure.Caching;
+using CurrencyConverter.Infrastructure.Providers;
+using CurrencyConverter.Infrastructure.Providers.Frankfurter;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+
+namespace CurrencyConverter.Infrastructure.DependencyInjection;
+
+public static class InfrastructureServiceCollectionExtensions
+{
+	public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+	{
+		services.Configure<ProviderOptions>(configuration.GetSection(ProviderOptions.SectionName));
+		services.Configure<FrankfurterOptions>(configuration.GetSection(FrankfurterOptions.SectionName));
+
+		services.AddMemoryCache();
+		services.AddSingleton<IExchangeRateCache, MemoryExchangeRateCache>();
+
+		services.AddHttpClient<FrankfurterCurrencyProvider>((sp, client) =>
+		{
+			var options = sp.GetRequiredService<IOptions<FrankfurterOptions>>().Value;
+			client.BaseAddress = new Uri(options.BaseUrl);
+		});
+
+		services.AddKeyedTransient<ICurrencyProvider>(CurrencyProviderKey.Frankfurter, (sp, _) =>
+			sp.GetRequiredService<FrankfurterCurrencyProvider>());
+
+		services.AddSingleton<ICurrencyProviderFactory, CurrencyProviderFactory>();
+
+		return services;
+	}
+}
