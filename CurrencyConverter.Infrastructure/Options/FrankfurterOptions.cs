@@ -1,4 +1,4 @@
-﻿namespace CurrencyConverter.Infrastructure.Providers.Frankfurter;
+﻿namespace CurrencyConverter.Infrastructure.Options;
 
 public sealed class FrankfurterOptions
 {

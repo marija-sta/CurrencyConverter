@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using CurrencyConverter.Api.DependencyInjection;
+using CurrencyConverter.Api.Endpoints;
 using CurrencyConverter.Api.Middleware;
 using CurrencyConverter.Infrastructure.DependencyInjection;
 using Scalar.AspNetCore;
@@ -16,6 +17,7 @@ builder.Services.AddSingleton<ExceptionHandlingMiddleware>();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplicationServices();
+builder.Services.AddApiSecurity(builder.Configuration);
 
 builder.Services
        .AddApiVersioning(options =>
@@ -37,10 +39,9 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference(options =>
-    {
-        options.Title = "CurrencyConverter API";
-    });
+    app.MapScalarApiReference(options => { options.Title = "CurrencyConverter API"; });
+
+    app.MapDevAuthEndpoints();
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -49,6 +50,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers()
+   .RequireRateLimiting("ApiPolicy")
+   .RequireAuthorization();
 
 app.Run();

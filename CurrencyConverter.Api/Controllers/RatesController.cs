@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
 using CurrencyConverter.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CurrencyConverter.Api.Controllers;
@@ -16,6 +17,7 @@ public sealed class RatesController : ControllerBase
 		this._service = service;
 	}
 
+	[Authorize(Policy = "RatesRead")]
 	[HttpGet("latest")]
 	public async Task<ActionResult<LatestRatesDto>> Latest(
 		[FromQuery] string baseCurrency,
@@ -25,6 +27,7 @@ public sealed class RatesController : ControllerBase
 		return Ok(result);
 	}
 
+	[Authorize(Policy = "HistoryRead")]
 	[HttpGet("historical")]
 	public async Task<ActionResult<object>> Historical(
 		[FromQuery] string baseCurrency,

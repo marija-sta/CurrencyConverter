@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using CurrencyConverter.Application.Abstractions.Providers;
 using CurrencyConverter.Domain.ValueObjects;
 
-namespace CurrencyConverter.Infrastructure.Providers.Frankfurter;
+namespace CurrencyConverter.Infrastructure.Providers;
 
 public sealed class FrankfurterCurrencyProvider : ICurrencyProvider
 {
@@ -12,7 +12,7 @@ public sealed class FrankfurterCurrencyProvider : ICurrencyProvider
 
     public FrankfurterCurrencyProvider(HttpClient httpClient)
     {
-        _httpClient = httpClient;
+        this._httpClient = httpClient;
     }
 
     public async Task<LatestRatesResult> GetLatestRatesAsync(
@@ -20,7 +20,7 @@ public sealed class FrankfurterCurrencyProvider : ICurrencyProvider
         CancellationToken cancellationToken)
     {
         var url = $"latest?base={baseCurrency.Value}";
-        var response = await _httpClient.GetFromJsonAsync<FrankfurterLatestResponse>(url, cancellationToken)
+        var response = await this._httpClient.GetFromJsonAsync<FrankfurterLatestResponse>(url, cancellationToken)
                        ?? throw new InvalidOperationException("Frankfurter response was empty.");
 
         return new LatestRatesResult(
@@ -38,7 +38,7 @@ public sealed class FrankfurterCurrencyProvider : ICurrencyProvider
         var amountStr = amount.ToString(CultureInfo.InvariantCulture);
         var url = $"latest?amount={amountStr}&from={from.Value}&to={to.Value}";
 
-        var response = await _httpClient.GetFromJsonAsync<FrankfurterLatestResponse>(url, cancellationToken)
+        var response = await this._httpClient.GetFromJsonAsync<FrankfurterLatestResponse>(url, cancellationToken)
                        ?? throw new InvalidOperationException("Frankfurter response was empty.");
 
         if (!response.Rates.TryGetValue(to.Value, out var converted))
@@ -61,7 +61,7 @@ public sealed class FrankfurterCurrencyProvider : ICurrencyProvider
         CancellationToken cancellationToken)
     {
         var url = $"{range.Start:yyyy-MM-dd}..{range.End:yyyy-MM-dd}?base={baseCurrency.Value}";
-        var response = await _httpClient.GetFromJsonAsync<FrankfurterHistoricalResponse>(url, cancellationToken)
+        var response = await this._httpClient.GetFromJsonAsync<FrankfurterHistoricalResponse>(url, cancellationToken)
                        ?? throw new InvalidOperationException("Frankfurter response was empty.");
 
         var points = response.Rates

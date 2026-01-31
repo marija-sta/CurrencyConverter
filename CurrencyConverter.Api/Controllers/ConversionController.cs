@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
 using CurrencyConverter.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CurrencyConverter.Api.Controllers.V1;
@@ -16,6 +17,7 @@ public sealed class ConversionController : ControllerBase
 		_service = service;
 	}
 
+	[Authorize(Policy = "Convert")]
 	[HttpGet]
 	public async Task<ActionResult<ConversionDto>> Convert(
 		[FromQuery] decimal amount,

@@ -1,4 +1,5 @@
 ﻿using CurrencyConverter.Application.Abstractions.Providers;
+using CurrencyConverter.Infrastructure.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 

@@ -1,6 +1,6 @@
 ﻿using CurrencyConverter.Application.Abstractions.Providers;
 
-namespace CurrencyConverter.Infrastructure.Providers;
+namespace CurrencyConverter.Infrastructure.Options;
 
 public sealed class ProviderOptions
 {
