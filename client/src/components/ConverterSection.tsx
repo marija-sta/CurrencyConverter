@@ -2,7 +2,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { ArrowLeftRight } from 'lucide-react';
 import { apiClient } from '../lib/api-client';
-import { CURRENCIES } from '../types/api';
+import { CURRENCIES, EXCLUDED_CURRENCIES } from '../types/api';
 import type { ConversionResponse } from '../types/api';
 
 export default function ConverterSection() {
@@ -10,15 +10,37 @@ export default function ConverterSection() {
   const [fromCurrency, setFromCurrency] = useState('USD');
   const [toCurrency, setToCurrency] = useState('EUR');
   const [result, setResult] = useState<ConversionResponse | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const availableCurrencies = CURRENCIES.filter(
+    (currency) => !EXCLUDED_CURRENCIES.includes(currency.code)
+  );
 
   const convertMutation = useMutation({
     mutationFn: () => apiClient.convert(Number(amount), fromCurrency, toCurrency),
     onSuccess: (data) => {
       setResult(data);
+      setValidationError(null);
     },
   });
 
   const handleConvert = () => {
+    // Clear previous validation errors
+    setValidationError(null);
+
+    // Validate amount
+    const numAmount = Number(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      setValidationError('Amount must be greater than zero');
+      return;
+    }
+
+    // Validate currencies are not excluded
+    if (EXCLUDED_CURRENCIES.includes(fromCurrency) || EXCLUDED_CURRENCIES.includes(toCurrency)) {
+      setValidationError('Currency conversion is not supported for TRY, PLN, THB, or MXN');
+      return;
+    }
+
     convertMutation.mutate();
   };
 
@@ -51,7 +73,7 @@ export default function ConverterSection() {
                 onChange={(e) => setFromCurrency(e.target.value)}
                 className="px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white cursor-pointer"
               >
-                {CURRENCIES.map((currency) => (
+                {availableCurrencies.map((currency) => (
                   <option key={currency.code} value={currency.code}>
                     {currency.code} {currency.name}
                   </option>
@@ -78,7 +100,7 @@ export default function ConverterSection() {
                 onChange={(e) => setToCurrency(e.target.value)}
                 className="px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white cursor-pointer"
               >
-                {CURRENCIES.map((currency) => (
+                {availableCurrencies.map((currency) => (
                   <option key={currency.code} value={currency.code}>
                     {currency.code} {currency.name}
                   </option>
@@ -126,6 +148,12 @@ export default function ConverterSection() {
         >
           {convertMutation.isPending ? 'Converting...' : 'Convert Now'}
         </button>
+
+        {validationError && (
+          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
+            {validationError}
+          </div>
+        )}
 
         {convertMutation.isError && (
           <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">

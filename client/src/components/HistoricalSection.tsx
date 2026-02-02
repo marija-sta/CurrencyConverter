@@ -40,8 +40,9 @@ export default function HistoricalSection() {
       <div className="bg-white rounded-lg p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-2">Base Currency</label>
+            <label htmlFor="base-currency" className="block text-sm text-gray-600 mb-2">Base Currency</label>
             <select
+              id="base-currency"
               value={baseCurrency}
               onChange={(e) => {
                 setBaseCurrency(e.target.value);
@@ -58,12 +59,14 @@ export default function HistoricalSection() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-2">Start Date</label>
+            <label htmlFor="start-date" className="block text-sm text-gray-600 mb-2">Start Date</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
+                id="start-date"
                 type="date"
                 value={startDate}
+                max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => {
                   setStartDate(e.target.value);
                   setPage(1);
@@ -74,12 +77,14 @@ export default function HistoricalSection() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-2">End Date</label>
+            <label htmlFor="end-date" className="block text-sm text-gray-600 mb-2">End Date</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
+                id="end-date"
                 type="date"
                 value={endDate}
+                max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => {
                   setEndDate(e.target.value);
                   setPage(1);
@@ -149,6 +154,7 @@ export default function HistoricalSection() {
               <button
                 onClick={() => goToPage(page - 1)}
                 disabled={page === 1}
+                aria-label="Previous page"
                 className="px-3 py-2 border border-white/20 rounded-lg hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -187,6 +193,7 @@ export default function HistoricalSection() {
               <button
                 onClick={() => goToPage(page + 1)}
                 disabled={page === data.totalPages}
+                aria-label="Next page"
                 className="px-3 py-2 border border-white/20 rounded-lg hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />

@@ -34,6 +34,8 @@ export interface Currency {
   name: string;
 }
 
+export const EXCLUDED_CURRENCIES = ['TRY', 'PLN', 'THB', 'MXN'];
+
 export const CURRENCIES: Currency[] = [
   { code: 'USD', name: 'US Dollar' },
   { code: 'EUR', name: 'Euro' },
