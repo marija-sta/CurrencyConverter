@@ -1,131 +1,20 @@
-# Currency Converter Platform
+## Project Overview
 
-A full-stack currency conversion platform demonstrating enterprise-grade architecture, resilience patterns, security, and observability.
+This project is a take-home assignment implementing a full-stack currency conversion platform with a React frontend and an ASP.NET Core backend API.
 
-**Tech Stack:**
-- **Backend:** ASP.NET Core 9.0 (C#)
-- **Frontend:** React with TypeScript (Vite)
-- **External API:** Frankfurter API (https://api.frankfurter.app/)
+The goal of the solution is to demonstrate clear architectural thinking, clean separation of concerns, and production-oriented design decisions, while strictly adhering to the task requirements. The implementation focuses on correctness, maintainability, testability, and resilience rather than feature breadth or infrastructure complexity.
 
----
+The backend exposes endpoints for currency conversion, latest exchange rates, and historical exchange rates, using the Frankfurter API as the upstream data source. The frontend consumes these endpoints to provide a simple and user-friendly interface for performing conversions and browsing rate data.
 
-## Table of Contents
+The solution emphasizes:
+- Clean Architecture with strict layering and dependency direction
+- Explicit handling of business rules and validation
+- Resilience and performance through caching and controlled retries
+- Security via JWT authentication, role-based authorization, and rate limiting
+- End-to-end testability with high unit and integration test coverage
+- Transparent and deliberate use of AI as a supporting development tool
 
-1. [Setup Instructions](#setup-instructions)
-2. [Architecture Overview](#architecture-overview)
-3. [Features & Requirements](#features--requirements)
-4. [AI Usage & Collaboration](#ai-usage--collaboration)
-5. [Assumptions & Trade-offs](#assumptions--trade-offs)
-6. [Future Improvements](#future-improvements)
-
----
-
-## Setup Instructions
-
-### Prerequisites
-
-- .NET 9.0 SDK
-- Node.js 18+ (for frontend)
-- IDE: Visual Studio 2022, JetBrains Rider, or VS Code
-
-### Backend Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd CurrencyConverter
-   ```
-
-2. **Configure JWT Secret** (Development only)
-   
-   Edit `CurrencyConverter.Api/appsettings.Development.json`:
-   ```json
-   {
-     "Jwt": {
-       "SigningKey": "your-secret-key-here-minimum-32-characters"
-     }
-   }
-   ```
-
-3. **Restore dependencies**
-   ```bash
-   dotnet restore
-   ```
-
-4. **Run the API**
-   ```bash
-   dotnet run --project CurrencyConverter.Api
-   ```
-
-   The API will be available at: `https://localhost:7001`
-
-5. **Explore API Documentation**
-   
-   In Development mode, navigate to: `https://localhost:7001/scalar/v1`
-   
-   This opens the Scalar API documentation UI.
-
-### Obtaining JWT Token (Development)
-
-The API is secured with JWT authentication. For development/testing:
-
-**POST** `https://localhost:7001/api/dev/token`
-
-```json
-{
-  "clientId": "test-user",
-  "roles": ["rates.read", "convert", "history.read"]
-}
-```
-
-Or use the `admin` role for full access:
-```json
-{
-  "clientId": "admin-user",
-  "roles": ["admin"]
-}
-```
-
-**Response:**
-```json
-{
-  "token": "eyJhbGc..."
-}
-```
-
-Use this token in the `Authorization` header:
-```
-Authorization: Bearer eyJhbGc...
-```
-
-### Frontend Setup
-
-```bash
-cd client
-npm install
-npm run dev
-```
-
-The frontend will be available at: `http://localhost:5173`
-
-### Running Tests
-
-**All tests with coverage:**
-```bash
-.\tests\run-tests-with-detailed-coverage.ps1
-```
-
-**Unit tests only:**
-```bash
-dotnet test tests/CurrencyConverter.UnitTests/
-```
-
-**Integration tests only:**
-```bash
-dotnet test tests/CurrencyConverter.IntegrationTests/
-```
-
-**Current Coverage:** 97%+ (Line Coverage)
+All non-essential concerns and over-engineering were intentionally avoided to keep the solution focused, readable, and aligned with the scope of the assignment.
 
 ---
 
@@ -193,6 +82,40 @@ Several concerns are applied consistently across the system:
 
 A full authentication system and distributed caching were intentionally not implemented as part of this task. These concerns are clearly identified and documented as future improvements to keep the current solution focused and aligned with the assignment requirements.
 
+
+---
+
+
+## Testing Strategy & Coverage
+
+Testing is structured to validate core business logic as well as real end-to-end behavior, while keeping feedback loops fast and predictable during development.
+
+### Testing strategy
+
+- **Unit tests** focus on domain and application logic, including validation rules, business constraints, paging behavior, and service orchestration.
+- **Integration tests** validate end-to-end API behavior, including request handling, authentication and authorization, rate limiting, error handling, and integration with the Frankfurter API.
+- **Frontend tests** focus on key user flows and correctness of behavior (validation, loading states, error states, and pagination), rather than UI implementation details.
+
+### Running tests and generating coverage
+
+Scripts for running tests and generating coverage reports are located in the `scripts/` folder.
+
+- Backend scripts execute unit and integration tests and generate coverage reports.
+- Frontend scripts execute component tests and generate coverage reports.
+
+### Coverage results
+
+Coverage reports are generated locally and are not committed to the repository to avoid storing generated artifacts.
+
+The following screenshots illustrate the resulting coverage:
+- **Backend coverage**
+  
+  <img width="1721" height="759" alt="image" src="https://github.com/user-attachments/assets/61f041bc-2fc6-4cbe-b143-160d3e53bb39" />
+
+- **Frontend coverage**
+  
+<img width="1915" height="435" alt="image" src="https://github.com/user-attachments/assets/7bbc0418-dd84-4d3b-9513-741451ce0d61" />
+
 ---
 
 ## AI Usage & Collaboration
@@ -234,64 +157,6 @@ AI occasionally suggested additional frameworks or abstractions that were not st
 
 #### Generated code complexity
 AI-generated code was frequently simplified or refactored when it introduced unnecessary indirection or verbosity. Preference was given to explicit, easy-to-follow implementations over clever or overly generic solutions.
-
-
----
-
-## Configuration Management
-
-### Environment Configuration
-
-The application uses a two-tier configuration approach:
-
-#### `appsettings.json` (Non-Secret Defaults)
-
-Contains all non-sensitive configuration:
-- **Provider Selection:** Active currency provider (`CurrencyProviders:ActiveProvider`)
-- **Resilience Configuration:** Timeout, retry, circuit breaker settings (`FrankfurterResilience`)
-- **JWT Metadata:** Issuer, Audience, TokenLifetime, ClockSkew (`Jwt`)
-- **Rate Limiting:** PermitLimit, WindowSeconds, QueueLimit (`RateLimiting`)
-- **Serilog Configuration:** Console sink, log levels, output template
-
-#### `appsettings.Development.json` (Development-Only Secrets)
-
-Contains development-specific secrets:
-- **JWT Signing Key:** `Jwt:SigningKey` (not committed to source control)
-
-**Security Note:** No secrets are committed to source control. The signing key must be configured per environment.
-
-### Configuration Sections
-
-```json
-{
-  "CurrencyProviders": {
-    "ActiveProvider": "Frankfurter"
-  },
-  "Frankfurter": {
-    "BaseUrl": "https://api.frankfurter.app/"
-  },
-  "FrankfurterResilience": {
-    "TimeoutSeconds": 10,
-    "RetryMaxAttempts": 3,
-    "RetryBaseDelayMilliseconds": 500,
-    "CircuitBreakerSamplingSeconds": 30,
-    "CircuitBreakerMinimumThroughput": 5,
-    "CircuitBreakerFailureRatio": 0.5,
-    "CircuitBreakerBreakSeconds": 30
-  },
-  "Jwt": {
-    "Issuer": "CurrencyConverter",
-    "Audience": "CurrencyConverterClients",
-    "TokenLifetimeMinutes": 60,
-    "ClockSkewSeconds": 30
-  },
-  "RateLimiting": {
-    "PermitLimit": 100,
-    "WindowSeconds": 60,
-    "QueueLimit": 0
-  }
-}
-```
 
 ---
 ## Assumptions & Trade-offs
@@ -388,3 +253,94 @@ This was intentionally kept minimal to stay within the scope of the assignment.
 ### Summary
 
 These improvements build directly on the existing design and were deliberately deferred to keep the solution focused, readable, and aligned with the task scope.
+
+---
+
+## Setup Instructions
+
+The project consists of a backend API and a frontend React application. Both can be run locally without additional infrastructure. It is structured to be CI-ready, with deterministic builds, scriptable test execution, and environment-based configuration. CI/CD pipelines were intentionally not implemented, as documentation was sufficient for the scope of this task.
+
+### Prerequisites
+
+- .NET 9.0 SDK
+- Node.js 18+
+- Git
+
+
+### Backend (API)
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd CurrencyConverter/server
+   ```
+
+2. (Optional) Configure JWT signing key for development:
+   - Edit `src/CurrencyConverter.Api/appsettings.Development.json`
+   - A development key is already provided and can be overridden if needed
+
+3. Run the API:
+   ```bash
+   dotnet run --project src/CurrencyConverter.Api
+   ```
+
+- The API will be available at:  
+  `http://localhost:5014`
+
+- OpenAPI documentation (development only):  
+  `http://localhost:5014/scalar/v1`
+
+
+### Frontend (React)
+
+1. Navigate to the frontend folder:
+   ```bash
+   cd ../client
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. (Optional) Configure API base URL:
+   - Create a `.env` file in the `client` folder
+   ```env
+   VITE_API_URL=http://localhost:5014/api/v1
+   ```
+
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+- The frontend will be available at:  
+  `http://localhost:5173`
+
+
+### Development authentication
+
+- For development and testing purposes, the API exposes a development-only token endpoint.
+- This endpoint exists solely to demonstrate JWT authentication and RBAC.
+- It is **not intended for production use**.
+
+```
+POST /api/dev/token
+```
+
+- The frontend uses this mechanism automatically in development mode.
+
+
+### Running tests
+
+- Scripts for running backend and frontend tests, as well as generating coverage reports, are located in the `scripts/` folder.
+- All tests can be executed via the command line without additional setup.
+
+---
+
+## Configuration
+
+- Backend configuration uses `appsettings.json` for defaults and `appsettings.Development.json` for development-only values (for example the JWT signing key).
+- The active currency provider and resilience settings are configured in `appsettings.json`.
+- The frontend API base URL can be set via `VITE_API_URL` in `client/.env`.
+- Generated artifacts (coverage HTML, etc.) are not committed.
