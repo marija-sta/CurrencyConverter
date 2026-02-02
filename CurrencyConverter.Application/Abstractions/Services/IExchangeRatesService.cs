@@ -1,6 +1,7 @@
-﻿using CurrencyConverter.Domain.Paging;
+﻿using CurrencyConverter.Application.DTOs;
+using CurrencyConverter.Domain.Paging;
 
-namespace CurrencyConverter.Application.Services;
+namespace CurrencyConverter.Application.Abstractions.Services;
 
 public interface IExchangeRatesService
 {
@@ -14,7 +15,3 @@ public interface IExchangeRatesService
 		int pageSize,
 		CancellationToken cancellationToken);
 }
-
-public sealed record LatestRatesDto(string Base, DateOnly AsOf, IReadOnlyDictionary<string, decimal> Rates);
-
-public sealed record HistoricalRatePointDto(DateOnly Date, IReadOnlyDictionary<string, decimal> Rates);
