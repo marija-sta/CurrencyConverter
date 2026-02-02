@@ -105,7 +105,8 @@ Scripts for running tests and generating coverage reports are located in the `sc
 
 ### Coverage results
 
-Coverage reports are generated locally and are not committed to the repository to avoid storing generated artifacts.
+Coverage reports are generated locally when running the provided scripts. The scripts create a `TestResults` directory with separate outputs for backend and frontend coverage. These generated files are not committed to the repository to avoid storing build artifacts.
+
 
 The following screenshots illustrate the resulting coverage:
 - **Backend coverage**
