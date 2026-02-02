@@ -415,8 +415,6 @@ AI was then used as a coding assistant to write the actual test implementations 
 #### Documentation support
 AI was also used to assist with documentation by helping structure sections, improve clarity, and ensure consistency. All documentation was reviewed and refined manually to accurately reflect design decisions and implementation details.
 
----
-
 ### What Was Changed or Rejected
 
 Several AI suggestions were intentionally reviewed and adjusted to better align with the task requirements, scope, and maintainability goals.
@@ -492,238 +490,97 @@ Contains development-specific secrets:
 ```
 
 ---
-
 ## Assumptions & Trade-offs
+
+The implementation makes a number of deliberate assumptions and trade-offs to stay focused on the task requirements while maintaining clean structure and extensibility.
 
 ### Assumptions
 
-1. **Frankfurter API Availability**
-   - Assumption: >99% uptime
-   - Mitigation: Circuit breaker prevents cascading failures
+The solution assumes that the Frankfurter API is a reliable upstream data source and treats it as the single source of truth for exchange rates. Resilience mechanisms (timeouts, retries, circuit breaker) are used to mitigate temporary outages rather than attempting to replicate or persist external data.
 
-2. **Currency Code Stability**
-   - Assumption: ISO 4217 codes don't change frequently
-   - Trade-off: Hardcoded excluded currencies (TRY, PLN, THB, MXN)
+Currency codes are assumed to follow ISO 4217 standards. The explicitly excluded currencies (TRY, PLN, THB, MXN) are enforced as business rules in the domain layer, as required by the task.
 
-3. **Historical Data Range**
-   - Assumption: Frankfurter supports date ranges up to 1 year
-   - Validation: None (client can request any range)
+Rate limiting thresholds are assumed to be sufficient for a typical client usage pattern and are fully configurable. The exact values are not treated as fixed, but as defaults suitable for a demonstration environment.
 
-4. **Rate Limiting Sufficiency**
-   - Assumption: 100 requests/minute per client is adequate
-   - Tunable via configuration
+The solution assumes a single active currency provider for now. The architecture supports adding additional providers later, but only Frankfurter is implemented to avoid unnecessary complexity.
 
-5. **Single Currency Provider**
-   - Assumption: Frankfurter is sufficient for MVP
-   - Extensibility: Factory pattern allows adding providers later
 
 ### Trade-offs
 
-#### 1. **In-Memory Caching vs Redis**
+#### In-memory caching instead of Redis
 
-**Decision:** In-memory caching (`IMemoryCache`)
+In-memory caching was chosen to satisfy performance and resilience requirements without introducing additional infrastructure dependencies. This keeps the solution simple and easy to run locally, while still demonstrating proper abstraction via `IExchangeRateCache`.
 
-**Pros:**
-- Zero infrastructure dependency
-- Simpler deployment
-- Lower latency
+The trade-off is that cached data is not shared across instances and is lost on restart. This was considered acceptable for the scope of the task and can be addressed later by swapping in a distributed cache implementation.
 
-**Cons:**
-- Not shared across API instances
-- Lost on restart
-- Not suitable for large-scale production
 
-**Future:** Swap to Redis via `IExchangeRateCache` interface (no code change)
+#### Development-only authentication instead of a full auth system
 
-#### 2. **Symmetric JWT vs Asymmetric**
+A minimal development token endpoint was implemented to demonstrate JWT authentication, RBAC, and rate limiting without building a full authentication system.
 
-**Decision:** Symmetric key (HMAC-SHA256)
+This decision avoids spending time on out-of-scope concerns such as user registration, password management, or external identity providers, while still allowing security-related features to be exercised and tested.
 
-**Pros:**
-- Simpler configuration
-- Faster token generation
-- Adequate for single-tenant API
+The trade-off is that this endpoint is not suitable for production and exists only in development. A proper authentication system is explicitly listed as a future improvement.
 
-**Cons:**
-- Requires secret key sharing
-- Less secure than RSA/ECDSA
 
-**Future:** Move to asymmetric keys for production
+#### Symmetric JWT signing
 
-#### 3. **Development Token Endpoint (Not Full Authentication)**
+Symmetric JWT signing was chosen for simplicity and ease of configuration. This is sufficient for a single-service setup and avoids additional key management concerns.
 
-**Decision:** Minimal `/api/dev/token` endpoint instead of full authentication flow
+The trade-off is reduced security flexibility compared to asymmetric keys, which would be preferable in a multi-service or externally integrated environment.
 
-**Rationale:**
-The task requirements did not specify implementing a complete authentication system (login, registration, password management, OAuth, etc.). To avoid spending time on out-of-scope features while still demonstrating:
-- JWT authentication
-- RBAC enforcement
-- Rate limiting by client ID
 
-A **development-only** token issuance endpoint was implemented as a **minimal API endpoint** (not a controller) that:
-- Exists **only in Development environment**
-- Accepts a `clientId` and `roles[]` to generate a test JWT
-- Enables testing and demonstration of security features
-- Is explicitly documented as **not a production authentication flow**
+#### Integration tests against the real API
 
-**Pros:**
-- Focused on task requirements (JWT + RBAC)
-- Easy testing and development
-- No external OAuth dependency
-- Saved significant development time
-- Clear separation (minimal API, not part of controller surface)
+Integration tests were designed to call the real Frankfurter API to validate true end-to-end behavior.
 
-**Cons:**
-- Not a real authentication flow
-- Cannot be used in production
-- Requires developers to manually request tokens
-
-**Mitigation:** 
-- Only mapped in Development environment (`app.MapDevAuthEndpoints()` wrapped in `if (app.Environment.IsDevelopment())`)
-- Clearly documented as development-only in code and README
-- Would be replaced with proper authentication in production (see Future Improvements)
-
-#### 4. **Integration Tests Call Real API**
-
-**Decision:** Integration tests call actual Frankfurter API
-
-**Pros:**
-- True end-to-end validation
-- Catches real integration issues
-
-**Cons:**
-- Network dependency
-- Slower tests (~5-8 seconds)
-- Potential rate limiting
-
-**Alternative:** Could mock with WireMock (documented in tests)
-
-#### 5. **No Refresh Token**
-
-**Decision:** JWT only, no refresh token
-
-**Pros:**
-- Simpler implementation
-- Stateless
-
-**Cons:**
-- User must re-authenticate after token expiry
-
-**Future:** Add refresh token for production UX
+This provides strong confidence in the integration but introduces external dependencies and slower test execution. For a production setup, these tests could be isolated using mocks or a tool like WireMock, but real calls were preferred here for correctness and realism.
 
 ---
 
 ## Future Improvements
 
-### Short-Term (Production Readiness)
+The current implementation intentionally focuses on the task requirements and avoids unnecessary complexity. The following improvements represent realistic and clearly scoped next steps for a production-ready system.
 
-1. **Production Authentication System** ⭐ **PRIORITY**
-   - Replace development token endpoint with proper authentication
-   - Implement one of:
-     - OAuth 2.0 / OpenID Connect integration (Azure AD, Auth0, Keycloak)
-     - Custom login/registration endpoints with password hashing
-     - API key management system
-   - Add user management (registration, password reset, email verification)
-   - Implement refresh tokens for better UX
-   - Add rate limiting per authenticated user
-   - **Current State:** Dev-only token endpoint exists solely for testing JWT/RBAC features
+### 1. Production Authentication
 
-2. **Distributed Caching**
-   - Implement `RedisExchangeRateCache`
-   - Update DI registration
-   - No service code changes (abstraction FTW!)
+The current solution includes a development-only token endpoint to demonstrate JWT authentication and RBAC without implementing a full authentication system.
 
-3. **Asymmetric JWT Keys**
-   - Generate RSA key pair
-   - Update `JwtTokenService`
-   - Store private key in Azure Key Vault
+A production-ready version would replace this with a proper authentication flow, such as:
+- OAuth 2.0 / OpenID Connect integration (e.g. Azure AD, Auth0, Keycloak), or
+- A custom authentication system with secure password handling and refresh tokens
 
-4. **Health Checks**
-   - Add `/health` endpoint
-   - Check Frankfurter API connectivity
-   - Integrate with Kubernetes liveness/readiness probes
+This would enable real user management while preserving the existing authorization model.
 
-5. **Advanced Observability**
-   - Export to OpenTelemetry
-   - Integrate with Application Insights / Grafana
-   - Distributed tracing across services
 
-6. **HTTPS Everywhere**
-   - Enforce HTTPS in production
-   - Add HSTS headers
+### 2. Distributed Caching
 
-### Medium-Term (Scalability)
+In-memory caching was intentionally chosen to satisfy performance requirements without introducing infrastructure dependencies.
 
-7. **Multiple Currency Providers**
-   - Add Fixer.io, ExchangeRate-API
-   - Implement fallback strategy
-   - Provider health scoring
+For a horizontally scaled deployment, this could be replaced with a distributed cache (e.g. Redis) by implementing an alternative `IExchangeRateCache` without changing application or domain logic.
 
-8. **Response Caching Headers**
-   - Add `Cache-Control`, `ETag`
-   - Enable client-side caching
 
-9. **GraphQL Support**
-   - Add HotChocolate
-   - Allow clients to query only needed fields
+### 3. CI/CD Pipeline
 
-10. **Background Jobs**
-    - Pre-warm cache for popular currency pairs
-    - Daily data refresh job
+While not implemented as part of this task, the solution is structured to support CI/CD workflows.
 
-11. **Database for Historical Data**
-    - Cache historical rates in SQL/NoSQL
-    - Reduce Frankfurter API dependency
+A next step would include:
+- Automated build and test execution
+- Coverage reporting as part of the pipeline
+- Environment-specific configuration and deployments
 
-12. **CI/CD Pipeline**
-    - Automated test execution
-    - Coverage reporting
-    - Deployment automation
 
-### Long-Term (Enterprise Features)
+### 4. Observability Expansion (Optional)
 
-13. **Multi-Tenancy**
-    - Tenant-specific rate limits
-    - Custom currency provider per tenant
+Basic structured logging and correlation IDs are already in place.
 
-14. **Webhooks**
-    - Notify clients on rate changes
-    - Event-driven architecture
+If needed, this could be extended with:
+- OpenTelemetry exports
+- Centralized tracing and metrics dashboards
 
-15. **Analytics Dashboard**
-    - Track most requested currencies
-    - API usage metrics
+This was intentionally kept minimal to stay within the scope of the assignment.
 
-16. **Mobile SDK**
-    - Native SDKs for iOS/Android
-    - Offline-first with sync
 
-17. **AI-Powered Rate Prediction**
-    - ML model for rate forecasting
-    - Trend analysis
+### Summary
 
----
-
-## Project Statistics
-
-- **Lines of Code:** ~3,500 (excluding tests)
-- **Test Coverage:** 97.1% line coverage, 86.4% branch coverage
-- **Test Count:** 161 tests (106 unit, 55 integration)
-- **Build Time:** ~5 seconds
-- **Test Execution:** ~10 seconds (with real API calls)
-
----
-
-## License
-
-This project is a take-home assignment demonstrating technical proficiency.
-
----
-
-## Contact
-
-For questions or feedback, please open an issue in the repository.
-
----
-
-**Last Updated:** February 1, 2026
+These improvements build directly on the existing design and were deliberately deferred to keep the solution focused, readable, and aligned with the task scope.
