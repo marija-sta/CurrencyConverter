@@ -131,263 +131,67 @@ dotnet test tests/CurrencyConverter.IntegrationTests/
 
 ## Architecture Overview
 
-### Clean Architecture Structure
+This solution is a full-stack currency conversion platform consisting of a React frontend and an ASP.NET Core backend API. The architecture is intentionally designed to emphasize clarity, separation of concerns, testability, and extensibility, while staying strictly within the scope of the assignment.
 
-The solution follows **Clean Architecture** principles with clear separation of concerns:
+### High-level system flow
 
-```
-CurrencyConverter/
-├── CurrencyConverter.Domain/          # Enterprise business rules
-│   ├── ValueObjects/                  # Currency, Money, DateRange
-│   ├── Requests/                      # ConversionRequest with guards
-│   ├── Paging/                        # PageRequest, PagedResult
-│   └── Exceptions/                    # DomainValidationException
-│
-├── CurrencyConverter.Application/     # Application business rules
-│   ├── Services/                      # ConversionService, ExchangeRatesService
-│   ├── Abstractions/
-│   │   ├── Providers/                 # ICurrencyProvider interface
-│   │   ├── Caching/                   # IExchangeRateCache interface
-│   │   └── Observability/             # ICorrelationIdAccessor interface
-│   └── DTOs/                          # Data transfer objects
-│
-├── CurrencyConverter.Infrastructure/  # External concerns
-│   ├── Providers/                     # FrankfurterCurrencyProvider
-│   ├── Caching/                       # MemoryExchangeRateCache
-│   ├── Http/                          # Outbound HTTP logging
-│   ├── Helpers/                       # Resilience error classification
-│   └── DependencyInjection/           # Service registration
-│
-└── CurrencyConverter.Api/             # Web API layer
-    ├── Controllers/                   # REST endpoints (v1)
-    ├── Middleware/                    # Exception, Correlation, Logging
-    ├── Security/                      # JWT generation & options
-    └── DependencyInjection/           # API-specific registration
-```
+The React frontend communicates exclusively with the backend API. The API handles authentication, authorization, validation, and rate limiting before executing application use cases. Exchange rate data is retrieved from the Frankfurter API through a dedicated provider abstraction, with caching and resilience applied at the infrastructure level. Observability concerns, such as structured logging and correlation IDs, span the entire request lifecycle, including outbound calls.
 
-### Dependency Flow
+### Backend architecture
 
-```
-Api → Application → Domain
- ↓
-Infrastructure → Application → Domain
-```
+The backend follows Clean Architecture principles with strict layering and a clear dependency direction. Each layer has a single, well-defined responsibility.
 
-- **Domain** has no dependencies (pure business logic)
-- **Application** depends only on Domain (orchestration)
-- **Infrastructure** implements Application interfaces
-- **Api** depends on Application and Infrastructure (composition root)
+- **Domain layer**  
+  Contains the core business rules and validation logic. This includes domain concepts such as currency codes, monetary values, pagination, and business constraints (for example, excluded currencies). The domain is free of infrastructure and framework dependencies.
 
----
+- **Application layer**  
+  Implements use cases as application services and defines abstractions for external dependencies, such as exchange rate providers, caching, and observability access. This layer orchestrates business workflows while remaining independent of infrastructure concerns.
 
-### Key Design Patterns
+- **Infrastructure layer**  
+  Provides concrete implementations for external integrations and technical concerns. This includes the Frankfurter API integration, in-memory caching, and outbound HTTP resilience. Infrastructure depends on the application layer through interfaces, allowing implementations to be swapped without affecting business logic.
 
-#### 1. **Provider Factory Pattern**
+- **API layer**  
+  Exposes HTTP endpoints and acts as the composition root. It is responsible for request handling, authentication and authorization, rate limiting, API versioning, and middleware configuration. The API layer contains no business logic beyond request binding and response shaping.
 
-```csharp
-ICurrencyProviderFactory → ICurrencyProvider
-                              ↑
-                    FrankfurterCurrencyProvider
-```
+The dependency direction is strictly enforced, with inner layers unaware of outer layers. This ensures testability and long-term maintainability.
 
-**Benefits:**
-- Easy to add new currency data providers (e.g., Fixer.io, ExchangeRate-API)
-- Runtime provider selection via configuration
-- Keyed dependency injection for multiple implementations
+<img width="660" height="1188" alt="CurrencyConverter" src="https://github.com/user-attachments/assets/3155ce6c-9f95-4c7c-8dc5-2b6a52fd2beb" />
 
-**Configuration:**
-```json
-{
-  "CurrencyProviders": {
-    "ActiveProvider": "Frankfurter"
-  }
-}
-```
+### Frontend architecture
 
-#### 2. **Repository Pattern (Implicit)**
+The frontend is implemented as a React application with a clear separation between presentation, data access, and configuration.
 
-`IExchangeRateCache` abstracts caching:
-- **Current:** In-memory cache (`IMemoryCache`)
-- **Future:** Redis, Distributed cache (zero code changes in services)
+- **UI structure**  
+  The application is organized around feature-oriented components representing the main use cases: currency conversion, live exchange rates, and historical data. Components focus on rendering and user interaction rather than business logic.
 
-#### 3. **Domain-Driven Value Objects**
+- **Data access and state handling**  
+  All data is retrieved through the backend API. The frontend handles loading states, error states, and pagination explicitly, ensuring predictable and user-friendly behavior.
 
-- `CurrencyCode`: Validates 3-letter ISO codes, enforces excluded currencies
-- `Money`: Amount + Currency pairing
-- `DateRange`: Validates start ≤ end
-- `PageRequest`: Validates page number and size
+- **Validation and error handling**  
+  Client-side validation provides immediate feedback for invalid input, while server-side validation errors are surfaced clearly to the user. This ensures consistent enforcement of business rules without duplicating logic.
 
-**Guard Clauses:** All validation happens in value object constructors, throwing `DomainValidationException`.
+- **Configuration and authentication (development)**  
+  The frontend is configured via environment variables and uses a development-only authentication flow for demonstration purposes. This is intentionally simplified and designed to be replaced by a real authentication mechanism in a production setup.
 
----
+### Cross-cutting concerns
 
-### Resilience & Fault Tolerance
+Several concerns are applied consistently across the system:
 
-**Microsoft.Extensions.Http.Resilience** pipeline on outbound HTTP:
+- **Resilience and performance**  
+  External API calls are protected using caching and resilience strategies to reduce load and handle transient failures gracefully.
 
-1. **Timeout:** Prevents hanging requests
-2. **Retry with Exponential Backoff:**
-   - Transient errors: 5xx, 408, 429, exceptions
-   - Non-transient: 4xx (except 408/429) fail immediately
-3. **Circuit Breaker:** Opens after failure threshold, prevents cascading failures
+- **Security**  
+  The API is secured using JWT authentication, role-based authorization, and rate limiting. Security concerns are centralized and kept separate from business logic.
 
-**Configuration:**
-```json
-{
-  "FrankfurterResilience": {
-    "TimeoutSeconds": 10,
-    "RetryMaxAttempts": 3,
-    "RetryBaseDelayMilliseconds": 500,
-    "CircuitBreakerSamplingSeconds": 30,
-    "CircuitBreakerMinimumThroughput": 5,
-    "CircuitBreakerFailureRatio": 0.5,
-    "CircuitBreakerBreakSeconds": 30
-  }
-}
-```
+- **Observability**  
+  Structured logging and correlation IDs provide end-to-end visibility into request execution, including outbound calls to the external provider.
 
----
+- **Versioning**  
+  API versioning is applied via URL segments to keep the contract explicit and support future evolution.
 
-### Security Implementation
+### Scope boundaries
 
-#### JWT Authentication
-
-- **Algorithm:** HMAC-SHA256
-- **Token Lifetime:** Configurable (default: 60 minutes)
-- **Claims:** `sub` (client ID), `role` (permissions)
-
-#### Role-Based Access Control (RBAC)
-
-| Endpoint | Required Role |
-|----------|---------------|
-| `GET /api/v1/rates/latest` | `rates.read` or `admin` |
-| `GET /api/v1/convert` | `convert` or `admin` |
-| `GET /api/v1/rates/historical` | `history.read` or `admin` |
-
-**Fallback Policy:** All endpoints require authentication by default.
-
-#### Rate Limiting
-
-- **Algorithm:** Token bucket
-- **Partition Key:** 
-  - Authenticated: JWT `sub` claim
-  - Anonymous: Client IP address
-- **Configuration:**
-```json
-{
-  "RateLimiting": {
-    "PermitLimit": 100,
-    "WindowSeconds": 60,
-    "QueueLimit": 0
-  }
-}
-```
-
-**Behavior:** HTTP 429 when limit exceeded.
-
----
-
-### Observability & Logging
-
-#### Structured Logging (Serilog)
-
-Every request logs:
-- **Client IP** (from `HttpContext.Connection.RemoteIpAddress`)
-- **Client ID** (from JWT `sub` claim)
-- **HTTP Method & Endpoint**
-- **Response Status Code**
-- **Response Time** (milliseconds)
-
-**Log Context Enrichment:**
-```csharp
-RequestLogContextMiddleware → Serilog.Context.LogContext
-```
-
-#### Correlation ID Flow
-
-1. **Accept or Generate:** `X-Correlation-ID` header
-2. **Store:** `ICorrelationIdAccessor` (AsyncLocal scoped)
-3. **Response Header:** Return same ID to client
-4. **Outbound Propagation:** Add to Frankfurter API calls
-5. **Logging:** All logs include `CorrelationId` property
-
-**Benefits:**
-- Trace requests across API and external calls
-- Debug production issues by correlation ID
-- Simplifies distributed tracing setup
-
-#### Request Logging Example
-
-```json
-{
-  "@t": "2026-02-01T10:15:30.1234567Z",
-  "@mt": "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms",
-  "RequestMethod": "GET",
-  "RequestPath": "/api/v1/convert",
-  "StatusCode": 200,
-  "Elapsed": 145.2341,
-  "ClientIp": "192.168.1.100",
-  "ClientId": "user-123",
-  "CorrelationId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-}
-```
-
----
-
-### API Versioning
-
-**Strategy:** URL Segment versioning
-
-```
-/api/v1/rates/latest
-/api/v1/convert
-/api/v1/rates/historical
-```
-
-**Benefits:**
-- Clear, visible version in URL
-- Supports major version changes
-- Easy client migration
-
-**Configuration:**
-```csharp
-[ApiVersion(1)]
-[Route("api/v{version:apiVersion}/[controller]")]
-```
-
----
-
-## Features & Requirements
-
-### ✅ Functional Requirements
-
-#### 1. Latest Exchange Rates
-- **Endpoint:** `GET /api/v1/rates/latest?baseCurrency=EUR`
-- **Source:** Frankfurter API
-- **Caching:** 5 minutes TTL
-
-#### 2. Currency Conversion
-- **Endpoint:** `GET /api/v1/convert?amount=100&from=USD&to=EUR`
-- **Validation:** Excludes TRY, PLN, THB, MXN (returns 400 with clear message)
-- **Business Rule:** Enforced in Domain layer (`ConversionRequest.Create`)
-
-#### 3. Historical Exchange Rates (Paginated)
-- **Endpoint:** `GET /api/v1/rates/historical?baseCurrency=EUR&start=2024-01-01&end=2024-01-31&page=1&pageSize=10`
-- **Pagination:** Server-side with `PagedResult<T>` response
-- **Caching:** 60 minutes TTL
-
-### ✅ Technical Requirements
-
-| Requirement | Implementation | Status |
-|-------------|----------------|--------|
-| **Resilience** | Retry + Circuit Breaker | ✅ |
-| **Performance** | Memory caching (Redis-ready) | ✅ |
-| **Extensibility** | Provider factory pattern | ✅ |
-| **Security** | JWT + RBAC + Rate Limiting | ✅ |
-| **Observability** | Serilog + Correlation IDs | ✅ |
-| **Testing** | 97%+ coverage | ✅ |
-| **Versioning** | URL segment (v1) | ✅ |
-| **OpenAPI** | Scalar UI (dev mode) | ✅ |
+A full authentication system and distributed caching were intentionally not implemented as part of this task. These concerns are clearly identified and documented as future improvements to keep the current solution focused and aligned with the assignment requirements.
 
 ---
 
