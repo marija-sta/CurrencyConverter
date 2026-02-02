@@ -1,0 +1,65 @@
+Summary
+  Generated on: 2/2/2026 - 6:24:34 PM
+  Coverage date: 2/2/2026 - 6:24:30 PM - 2/2/2026 - 6:24:32 PM
+  Parser: MultiReport (2x Cobertura)
+  Assemblies: 4
+  Classes: 37
+  Files: 34
+  Line coverage: 99.4%
+  Covered lines: 395
+  Uncovered lines: 2
+  Coverable lines: 397
+  Total lines: 969
+  Branch coverage: 88.1% (52 of 59)
+  Covered branches: 52
+  Total branches: 59
+  Method coverage: 100% (110 of 110)
+  Full method coverage: 99% (109 of 110)
+  Covered methods: 110
+  Fully covered methods: 109
+  Total methods: 110
+
+CurrencyConverter.Api                                                                  98.7%
+  CurrencyConverter.Api.Controllers.ConversionController                                100%
+  CurrencyConverter.Api.Controllers.RatesController                                     100%
+  CurrencyConverter.Api.Middleware.CorrelationIdMiddleware                              100%
+  CurrencyConverter.Api.Middleware.ExceptionHandlingMiddleware                          100%
+  CurrencyConverter.Api.Middleware.RequestLogContextMiddleware                          100%
+  CurrencyConverter.Api.Observability.CorrelationIdAccessor                             100%
+  CurrencyConverter.Api.Security.JwtOptions                                             100%
+  CurrencyConverter.Api.Security.JwtTokenService                                        100%
+  CurrencyConverter.Api.Security.RateLimitingOptions                                    100%
+  Program                                                                                96%
+
+CurrencyConverter.Application                                                           100%
+  CurrencyConverter.Application.Abstractions.Providers.ConversionProviderResult         100%
+  CurrencyConverter.Application.Abstractions.Providers.HistoricalRatePoint              100%
+  CurrencyConverter.Application.Abstractions.Providers.HistoricalRatesResult            100%
+  CurrencyConverter.Application.Abstractions.Providers.LatestRatesResult                100%
+  CurrencyConverter.Application.DTOs.ConversionDto                                      100%
+  CurrencyConverter.Application.DTOs.HistoricalRatePointDto                             100%
+  CurrencyConverter.Application.DTOs.HistoricalRatesResponseDto                         100%
+  CurrencyConverter.Application.DTOs.LatestRatesDto                                     100%
+  CurrencyConverter.Application.Services.ConversionService                              100%
+  CurrencyConverter.Application.Services.ExchangeRatesService                           100%
+
+CurrencyConverter.Domain                                                                100%
+  CurrencyConverter.Domain.Exceptions.DomainValidationException                         100%
+  CurrencyConverter.Domain.Paging.PagedResult<T>                                        100%
+  CurrencyConverter.Domain.Paging.PageRequest                                           100%
+  CurrencyConverter.Domain.Requests.ConversionRequest                                   100%
+  CurrencyConverter.Domain.ValueObjects.CurrencyCode                                    100%
+  CurrencyConverter.Domain.ValueObjects.DateRange                                       100%
+  CurrencyConverter.Domain.ValueObjects.Money                                           100%
+
+CurrencyConverter.Infrastructure                                                        100%
+  CurrencyConverter.Infrastructure.Caching.MemoryExchangeRateCache                      100%
+  CurrencyConverter.Infrastructure.Helpers.FrankfurterTransientErrorClassifier          100%
+  CurrencyConverter.Infrastructure.Http.OutboundHttpCorrelationLoggingHandler           100%
+  CurrencyConverter.Infrastructure.Options.FrankfurterOptions                           100%
+  CurrencyConverter.Infrastructure.Options.FrankfurterResilienceOptions                 100%
+  CurrencyConverter.Infrastructure.Options.ProviderOptions                              100%
+  CurrencyConverter.Infrastructure.Providers.CurrencyProviderFactory                    100%
+  CurrencyConverter.Infrastructure.Providers.FrankfurterCurrencyProvider                100%
+  CurrencyConverter.Infrastructure.Providers.Responses.FrankfurterHistoricalResponse    100%
+  CurrencyConverter.Infrastructure.Providers.Responses.FrankfurterLatestResponse        100%
