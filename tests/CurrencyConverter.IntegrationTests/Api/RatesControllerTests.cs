@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
+using CurrencyConverter.Application.DTOs;
 using Microsoft.IdentityModel.Tokens;
 using FluentAssertions;
 
@@ -27,7 +28,8 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 
 		var response = await client.GetAsync("/api/v1/rates/latest?baseCurrency=EUR");
 
-		response.StatusCode.Should().Be(HttpStatusCode.OK);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.OK);
 	}
 
 	[Fact]
@@ -37,7 +39,8 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 
 		var response = await client.GetAsync("/api/v1/rates/latest?baseCurrency=EUR");
 
-		response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.Unauthorized);
 	}
 
 	[Fact]
@@ -49,7 +52,8 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 
 		var response = await client.GetAsync("/api/v1/rates/latest?baseCurrency=EUR");
 
-		response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.Forbidden);
 	}
 
 	[Fact]
@@ -61,7 +65,8 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 
 		var response = await client.GetAsync("/api/v1/rates/latest?baseCurrency=EUR");
 
-		response.StatusCode.Should().Be(HttpStatusCode.OK);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.OK);
 	}
 
 	[Theory]
@@ -76,7 +81,8 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 
 		var response = await client.GetAsync($"/api/v1/rates/latest?baseCurrency={baseCurrency}");
 
-		response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.BadRequest);
 	}
 
 	[Fact]
@@ -86,13 +92,19 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 		var token = GenerateJwtToken(["history.read"]);
 		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-		var response = await client.GetAsync("/api/v1/rates/historical?baseCurrency=EUR&start=2024-01-01&end=2024-01-31&page=1&pageSize=10");
+		var response =
+			await client.GetAsync(
+				"/api/v1/rates/historical?baseCurrency=EUR&start=2024-01-01&end=2024-01-31&page=1&pageSize=10");
 
-		response.StatusCode.Should().Be(HttpStatusCode.OK);
-		var content = await response.Content.ReadFromJsonAsync<PagedResponse>();
-		content.Should().NotBeNull();
-		content!.PageNumber.Should().Be(1);
-		content.PageSize.Should().Be(10);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.OK);
+		var content = await response.Content.ReadFromJsonAsync<HistoricalRatesResponseDto>();
+		content.Should()
+				.NotBeNull();
+		content!.Page.Should()
+				.Be(1);
+		content.PageSize.Should()
+				.Be(10);
 	}
 
 	[Fact]
@@ -100,9 +112,11 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 	{
 		var client = _factory.CreateClient();
 
-		var response = await client.GetAsync("/api/v1/rates/historical?baseCurrency=EUR&start=2024-01-01&end=2024-01-31");
+		var response =
+			await client.GetAsync("/api/v1/rates/historical?baseCurrency=EUR&start=2024-01-01&end=2024-01-31");
 
-		response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.Unauthorized);
 	}
 
 	[Fact]
@@ -112,9 +126,11 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 		var token = GenerateJwtToken(["history.read"]);
 		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-		var response = await client.GetAsync("/api/v1/rates/historical?baseCurrency=EUR&start=2024-01-31&end=2024-01-01");
+		var response =
+			await client.GetAsync("/api/v1/rates/historical?baseCurrency=EUR&start=2024-01-31&end=2024-01-01");
 
-		response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.BadRequest);
 	}
 
 	[Theory]
@@ -126,9 +142,12 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 		var token = GenerateJwtToken(["history.read"]);
 		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-		var response = await client.GetAsync($"/api/v1/rates/historical?baseCurrency=EUR&start=2024-01-01&end=2024-01-31&page={page}&pageSize=10");
+		var response =
+			await client.GetAsync(
+				$"/api/v1/rates/historical?baseCurrency=EUR&start=2024-01-01&end=2024-01-31&page={page}&pageSize=10");
 
-		response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.BadRequest);
 	}
 
 	[Fact]
@@ -140,7 +159,8 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 
 		var response = await client.GetAsync("/api/v1/rates/latest?baseCurrency=EUR");
 
-		response.Headers.Should().ContainKey("X-Correlation-ID");
+		response.Headers.Should()
+				.ContainKey("X-Correlation-ID");
 	}
 
 	[Fact]
@@ -149,12 +169,16 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 		var client = _factory.CreateClient();
 		var token = GenerateJwtToken(["rates.read"]);
 		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-		var correlationId = Guid.NewGuid().ToString("N");
+		var correlationId = Guid.NewGuid()
+								.ToString("N");
 		client.DefaultRequestHeaders.Add("X-Correlation-ID", correlationId);
 
 		var response = await client.GetAsync("/api/v1/rates/latest?baseCurrency=EUR");
 
-		response.Headers.GetValues("X-Correlation-ID").First().Should().Be(correlationId);
+		response.Headers.GetValues("X-Correlation-ID")
+				.First()
+				.Should()
+				.Be(correlationId);
 	}
 
 	private static string GenerateJwtToken(string[] roles)
@@ -169,7 +193,8 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 			claims.Add(new Claim(ClaimTypes.Role, role));
 		}
 
-		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("ngFbcjB0f8c+Cz3NmtwFb/rO1VZti67Q5dzQNAsg8hu1ppONbD03IlaF58f05kzFSK4VR7d9MOkaK7QfElqsqw=="));
+		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+			"ngFbcjB0f8c+Cz3NmtwFb/rO1VZti67Q5dzQNAsg8hu1ppONbD03IlaF58f05kzFSK4VR7d9MOkaK7QfElqsqw=="));
 		var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
 		var token = new JwtSecurityToken(
@@ -182,6 +207,4 @@ public sealed class RatesControllerTests : IClassFixture<CurrencyConverterWebApp
 
 		return new JwtSecurityTokenHandler().WriteToken(token);
 	}
-
-	private sealed record PagedResponse(int PageNumber, int PageSize, int TotalItems, int TotalPages);
 }

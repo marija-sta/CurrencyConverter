@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
-using CurrencyConverter.Application.Services;
+using CurrencyConverter.Application.Abstractions.Services;
+using CurrencyConverter.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

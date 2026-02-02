@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-
-namespace CurrencyConverter.Api.Security;
+﻿namespace CurrencyConverter.Api.Security;
 
 public interface IJwtTokenService
 {

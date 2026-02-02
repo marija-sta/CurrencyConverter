@@ -22,7 +22,9 @@ public static class DevAuthEndpoints
 
 			var token = tokenService.CreateToken(request.ClientId, roles);
 			return Results.Ok(new { token });
-		});
+		})
+		.AllowAnonymous()
+		.DisableRateLimiting();
 
 		return endpoints;
 	}

@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
-using CurrencyConverter.Application.Services;
+using CurrencyConverter.Application.Abstractions.Services;
+using CurrencyConverter.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,7 +30,7 @@ public sealed class RatesController : ControllerBase
 
 	[Authorize(Policy = "HistoryRead")]
 	[HttpGet("historical")]
-	public async Task<ActionResult<object>> Historical(
+	public async Task<ActionResult<HistoricalRatesResponseDto>> Historical(
 		[FromQuery] string baseCurrency,
 		[FromQuery] DateOnly start,
 		[FromQuery] DateOnly end,
@@ -40,13 +41,16 @@ public sealed class RatesController : ControllerBase
 		var result =
 			await this._service.GetHistoricalAsync(baseCurrency, start, end, page, pageSize, cancellationToken);
 
-		return Ok(new
-		{
+		var response = new HistoricalRatesResponseDto(
+			baseCurrency,
+			start.ToString("yyyy-MM-dd"),
+			end.ToString("yyyy-MM-dd"),
+			result.Items,
 			result.PageNumber,
 			result.PageSize,
 			result.TotalItems,
-			result.TotalPages,
-			Items = result.Items
-		});
+			result.TotalPages);
+
+		return Ok(response);
 	}
 }

@@ -1,5 +1,7 @@
 ﻿using CurrencyConverter.Application.Abstractions.Caching;
 using CurrencyConverter.Application.Abstractions.Providers;
+using CurrencyConverter.Application.Abstractions.Services;
+using CurrencyConverter.Application.DTOs;
 using CurrencyConverter.Domain.Paging;
 using CurrencyConverter.Domain.ValueObjects;
 

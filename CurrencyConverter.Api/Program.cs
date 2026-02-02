@@ -55,14 +55,13 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference(options => { options.Title = "CurrencyConverter API"; });
 
+    // Development-only token endpoint must be mapped separately to allow anonymous access
     app.MapDevAuthEndpoints();
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
-
-app.UseHttpsRedirection();
 
 app.UseCors();
 

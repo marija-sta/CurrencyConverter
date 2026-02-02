@@ -1,4 +1,6 @@
 ﻿using CurrencyConverter.Application.Abstractions.Providers;
+using CurrencyConverter.Application.Abstractions.Services;
+using CurrencyConverter.Application.DTOs;
 using CurrencyConverter.Domain.Requests;
 using CurrencyConverter.Domain.ValueObjects;
 
@@ -13,7 +15,11 @@ public sealed class ConversionService : IConversionService
 		_providerFactory = providerFactory;
 	}
 
-	public async Task<ConversionDto> ConvertAsync(decimal amount, string from, string to, CancellationToken cancellationToken)
+	public async Task<ConversionDto> ConvertAsync(
+		decimal amount,
+		string from,
+		string to,
+		CancellationToken cancellationToken)
 	{
 		var fromCode = new CurrencyCode(from);
 		var toCode = new CurrencyCode(to);

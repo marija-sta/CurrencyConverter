@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
+using CurrencyConverter.Application.DTOs;
 using Microsoft.IdentityModel.Tokens;
 using FluentAssertions;
 
@@ -27,12 +28,17 @@ public sealed class ConversionControllerTests : IClassFixture<CurrencyConverterW
 
 		var response = await client.GetAsync("/api/v1/convert?amount=100&from=USD&to=EUR");
 
-		response.StatusCode.Should().Be(HttpStatusCode.OK);
-		var content = await response.Content.ReadFromJsonAsync<ConversionResponse>();
-		content.Should().NotBeNull();
-		content.Amount.Should().Be(100);
-		content.From.Should().Be("USD");
-		content.To.Should().Be("EUR");
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.OK);
+		var content = await response.Content.ReadFromJsonAsync<ConversionDto>();
+		content.Should()
+				.NotBeNull();
+		content.Amount.Should()
+				.Be(100);
+		content.From.Should()
+				.Be("USD");
+		content.To.Should()
+				.Be("EUR");
 	}
 
 	[Fact]
@@ -42,7 +48,8 @@ public sealed class ConversionControllerTests : IClassFixture<CurrencyConverterW
 
 		var response = await client.GetAsync("/api/v1/convert?amount=100&from=USD&to=EUR");
 
-		response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.Unauthorized);
 	}
 
 	[Fact]
@@ -54,7 +61,8 @@ public sealed class ConversionControllerTests : IClassFixture<CurrencyConverterW
 
 		var response = await client.GetAsync("/api/v1/convert?amount=100&from=USD&to=EUR");
 
-		response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.Forbidden);
 	}
 
 	[Fact]
@@ -66,7 +74,8 @@ public sealed class ConversionControllerTests : IClassFixture<CurrencyConverterW
 
 		var response = await client.GetAsync("/api/v1/convert?amount=100&from=USD&to=EUR");
 
-		response.StatusCode.Should().Be(HttpStatusCode.OK);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.OK);
 	}
 
 	[Theory]
@@ -82,9 +91,11 @@ public sealed class ConversionControllerTests : IClassFixture<CurrencyConverterW
 
 		var response = await client.GetAsync($"/api/v1/convert?amount=100&from={excludedCurrency}&to=USD");
 
-		response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.BadRequest);
 		var content = await response.Content.ReadAsStringAsync();
-		content.Should().Contain("Currency conversion is not supported for TRY, PLN, THB, or MXN");
+		content.Should()
+				.Contain("Currency conversion is not supported for TRY, PLN, THB, or MXN");
 	}
 
 	[Theory]
@@ -100,9 +111,11 @@ public sealed class ConversionControllerTests : IClassFixture<CurrencyConverterW
 
 		var response = await client.GetAsync($"/api/v1/convert?amount=100&from=USD&to={excludedCurrency}");
 
-		response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.BadRequest);
 		var content = await response.Content.ReadAsStringAsync();
-		content.Should().Contain("Currency conversion is not supported for TRY, PLN, THB, or MXN");
+		content.Should()
+				.Contain("Currency conversion is not supported for TRY, PLN, THB, or MXN");
 	}
 
 	[Theory]
@@ -117,9 +130,11 @@ public sealed class ConversionControllerTests : IClassFixture<CurrencyConverterW
 
 		var response = await client.GetAsync($"/api/v1/convert?amount={amount}&from=USD&to=EUR");
 
-		response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.BadRequest);
 		var content = await response.Content.ReadAsStringAsync();
-		content.Should().Contain("Amount must be greater than zero");
+		content.Should()
+				.Contain("Amount must be greater than zero");
 	}
 
 	[Theory]
@@ -134,7 +149,8 @@ public sealed class ConversionControllerTests : IClassFixture<CurrencyConverterW
 
 		var response = await client.GetAsync($"/api/v1/convert?amount=100&from={invalidCode}&to=EUR");
 
-		response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.BadRequest);
 	}
 
 	[Fact]
@@ -146,7 +162,8 @@ public sealed class ConversionControllerTests : IClassFixture<CurrencyConverterW
 
 		var response = await client.GetAsync("/api/v1/convert?amount=100&from=USD&to=EUR");
 
-		response.Headers.Should().ContainKey("X-Correlation-ID");
+		response.Headers.Should()
+				.ContainKey("X-Correlation-ID");
 	}
 
 	[Fact]
@@ -158,7 +175,8 @@ public sealed class ConversionControllerTests : IClassFixture<CurrencyConverterW
 
 		var response = await client.GetAsync("/api/v1/convert?amount=100&from=USD&to=EUR");
 
-		response.StatusCode.Should().Be(HttpStatusCode.OK);
+		response.StatusCode.Should()
+				.Be(HttpStatusCode.OK);
 	}
 
 	private static string GenerateJwtToken(string[] roles)
@@ -173,7 +191,8 @@ public sealed class ConversionControllerTests : IClassFixture<CurrencyConverterW
 			claims.Add(new Claim(ClaimTypes.Role, role));
 		}
 
-		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("ngFbcjB0f8c+Cz3NmtwFb/rO1VZti67Q5dzQNAsg8hu1ppONbD03IlaF58f05kzFSK4VR7d9MOkaK7QfElqsqw=="));
+		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+			"ngFbcjB0f8c+Cz3NmtwFb/rO1VZti67Q5dzQNAsg8hu1ppONbD03IlaF58f05kzFSK4VR7d9MOkaK7QfElqsqw=="));
 		var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
 		var token = new JwtSecurityToken(
@@ -186,6 +205,4 @@ public sealed class ConversionControllerTests : IClassFixture<CurrencyConverterW
 
 		return new JwtSecurityTokenHandler().WriteToken(token);
 	}
-
-	private sealed record ConversionResponse(decimal Amount, string From, string To, decimal ConvertedAmount, decimal RateUsed, DateOnly AsOf);
 }

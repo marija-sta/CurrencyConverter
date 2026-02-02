@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using CurrencyConverter.Application.Abstractions.Services;
 using CurrencyConverter.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
