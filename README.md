@@ -393,146 +393,46 @@ RequestLogContextMiddleware → Serilog.Context.LogContext
 
 ## AI Usage & Collaboration
 
-This project was developed **in collaboration with AI** (GitHub Copilot) as a **collaborative technical assistant**, not as an autonomous code generator. Below is a transparent account of how AI was used and where human judgment was applied.
-
 ### How AI Was Used
 
-#### 1. **Architecture & Design Discussions**
+#### Initial brainstorming and architecture validation
+AI was used early in the process to explore architectural options and trade-offs. From the start, I explicitly insisted on Clean Architecture, clear layering, and strict separation of concerns. AI input was used to validate and challenge ideas, not to define them.
 
-**AI Role:**
-- Proposed multiple architectural options and trade-offs for evaluation
-- Suggested Clean Architecture structure with clear boundaries
-- Recommended resilience patterns (retry, circuit breaker, timeout)
-- Proposed provider factory for extensibility
-- Helped identify where to place business rules (Domain vs Application vs Infrastructure)
-- Reviewed design decisions for Clean Architecture alignment
+#### Structured, step-by-step implementation
+After establishing the overall architecture, AI was used to help create a detailed, step-by-step coding plan for the implementation. The work was deliberately broken down into small, reviewable steps. Each step was implemented, reviewed, and adjusted before moving on to the next one.
 
-**Human Decision:**
-- ✅ Accepted: Clean Architecture separation with Domain at the core
-- ✅ Accepted: Provider factory pattern for extensibility
-- ⚠️ Modified: Selected keyed services over alternative provider factory implementations (simpler DI)
-- ⚠️ Modified: Chose major-only API versioning strategy (no minor versions)
-- ❌ Rejected: AI initially suggested complex multi-provider strategy; simplified to single active provider
-- ❌ Rejected: MediatR and other overengineering patterns (kept solution focused on requirements)
+#### Decision support, not decision-making
+For non-trivial decisions, AI was used to present alternatives, explain trade-offs, and highlight potential risks. Final decisions were made manually, based on task requirements, maintainability, and scope. AI was used to support informed decision-making, not to make decisions independently.
 
-#### 2. **Code Generation & Problem Solving**
+#### Test strategy and test implementation
+I defined and explained the full testing strategy myself, including:
+- what should be unit-tested
+- what should be covered by integration tests
+- what should explicitly not be tested
 
-**AI Role:**
-- Generated initial controller endpoints
-- Created middleware boilerplate
-- Generated test class structures
-- Wrote repetitive DTO mappings
-- Helped identify and fix dependency injection issues
-- Assisted with configuration structure design
-- Helped debug JSON serialization issues (e.g., Frankfurter's `start_date`/`end_date` mapping)
-- Supported API versioning and OpenAPI setup
-- Assisted with error handling strategy design
+AI was then used as a coding assistant to write the actual test implementations based on this strategy.
 
-**Human Validation:**
-- ✅ Verified all generated code for correctness
-- ✅ Refactored to match team coding standards
-- ✅ Added XML documentation where AI omitted it
-- ⚠️ Fixed: DI wiring issues (typed HttpClient BaseAddress with keyed services)
-- ⚠️ Fixed: JSON property mapping for Frankfurter DTOs
-- ⚠️ Fixed: AI sometimes used `OnStarting` callbacks unnecessarily
-- ⚠️ Adjusted: Error handling behavior for invalid client input (400 vs 500)
-- ❌ Rejected: Over-engineered service abstractions (kept it simple)
-
-#### 3. **Test Generation & Strategy**
-
-**AI Role:**
-- Generated 60+ unit test method signatures
-- Provided FluentAssertions syntax
-- Created integration test setup with `WebApplicationFactory`
-- Assisted with testing strategy design (unit vs integration)
-- Helped draft test case scenarios
-
-**Human Decisions:**
-- ✅ Reviewed every test for correctness
-- ⚠️ Fixed: Middleware tests initially didn't trigger `OnStarting` callbacks (removed callbacks entirely)
-- ⚠️ Modified: Simplified correlation ID middleware tests
-- ⚠️ Fixed: Test setup issues identified during manual testing
-- ✅ Added: Edge case tests AI didn't generate (e.g., empty correlation ID header, null handling)
-- ✅ Defined: 90% coverage threshold with pragmatic exclusions (DI classes)
-
-#### 4. **Resilience Configuration**
-
-**AI Role:**
-- Provided initial Polly retry/circuit breaker setup
-- Suggested transient error classification logic
-
-**Human Validation:**
-- ⚠️ Modified: Transient error classification (408 and 429 are transient, other 4xx are not)
-- ✅ Tuned: Circuit breaker thresholds based on Frankfurter SLA
-- ✅ Validated: Retry backoff strategy with exponential + jitter
-
-#### 5. **Documentation**
-
-**AI Role:**
-- Generated initial README structure
-- Provided XML doc comments for public APIs
-- Created test documentation
-
-**Human Oversight:**
-- ✅ Rewrote: Made documentation more concise
-- ✅ Added: Real-world examples and troubleshooting tips
-- ✅ Corrected: AI sometimes confused project structure
+#### Documentation support
+AI was also used to assist with documentation by helping structure sections, improve clarity, and ensure consistency. All documentation was reviewed and refined manually to accurately reflect design decisions and implementation details.
 
 ---
 
-### What AI Did NOT Control
+### What Was Changed or Rejected
 
-#### Design Decisions (Human-Driven)
+Several AI suggestions were intentionally reviewed and adjusted to better align with the task requirements, scope, and maintainability goals.
 
-1. **Excluded Currencies Rule Placement**
-   - AI suggested middleware validation
-   - **Human:** Moved to Domain layer (`ConversionRequest`) for proper business rule encapsulation
+#### Redis as a caching layer
+AI suggested introducing Redis as a distributed caching solution. I decided not to include Redis in the current implementation, as it was not required by the task and would introduce additional operational complexity without clear benefit at this stage. Instead, in-memory caching was used to fully satisfy the requirements. Redis is explicitly listed as a potential future improvement once scalability demands justify it.
 
-2. **Correlation ID Middleware**
-   - AI used `OnStarting` callback
-   - **Human:** Simplified to set header directly (no callback needed)
+#### Additional mediation or orchestration layers
+AI proposed adding extra mediation or orchestration patterns to structure application flow. I chose not to adopt these suggestions, as they increased complexity without providing meaningful value for the given scope. Simpler service interactions were preferred while still respecting Clean Architecture boundaries.
 
-3. **JWT Storage Strategy (Frontend)**
-   - AI suggested cookies
-   - **Human:** Chose in-memory storage for SPA security
+#### Frameworks and abstractions beyond requirements
+AI occasionally suggested additional frameworks or abstractions that were not strictly necessary. These were deliberately rejected to keep the solution focused, readable, and aligned with the task’s expectations.
 
-4. **Test Coverage Strategy**
-   - AI suggested 100% coverage
-   - **Human:** Defined 90% threshold, excluded DI classes pragmatically
+#### Generated code complexity
+AI-generated code was frequently simplified or refactored when it introduced unnecessary indirection or verbosity. Preference was given to explicit, easy-to-follow implementations over clever or overly generic solutions.
 
-#### Code Quality Standards
-
-- **Naming:** Human enforced consistent naming (no abbreviations)
-- **Comments:** Human removed AI's over-commenting (code should be self-explanatory)
-- **Error Messages:** Human reviewed all user-facing messages for clarity
-- **Edge Cases:** Human identified missing test scenarios AI overlooked
-
----
-
-### Lessons Learned (AI Collaboration)
-
-#### ✅ AI Strengths
-
-- **Boilerplate:** Excellent at repetitive code (DTOs, test setup, middleware)
-- **Patterns:** Good at suggesting standard patterns (factory, repository)
-- **Speed:** 3-5x faster initial implementation
-- **Documentation:** Helpful for XML comments and README structure
-
-#### ⚠️ AI Limitations
-
-- **Context:** Sometimes forgets earlier decisions in long sessions
-- **Pragmatism:** Tends to over-engineer (gold-plating)
-- **Domain Logic:** Cannot validate business rules without human input
-- **Testing Edge Cases:** Misses subtle edge cases (e.g., empty string vs null)
-- **Middleware Order:** Doesn't always understand ASP.NET Core pipeline order
-
-#### 🎯 Best Practices for AI Collaboration
-
-1. **Review Everything:** Never blindly accept generated code
-2. **Iterate:** Use AI for first draft, human refines
-3. **Test AI Code:** Write tests for AI-generated code
-4. **Clarify Context:** Re-state requirements when AI drifts
-5. **Challenge Suggestions:** Ask "why" for AI recommendations
 
 ---
 
